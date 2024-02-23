@@ -22,6 +22,8 @@ import {
     @Column({ type: 'text', nullable: true })
     channel: string;
     @Column()
+    guestCode : string;
+    @Column()
     userId: number;
     @Column({ type: 'longtext' , nullable: true })
     response: string;
@@ -31,5 +33,4 @@ import {
     created_at: Date;
     @UpdateDateColumn()
     updated_at: Date;
-
   }

@@ -4,11 +4,13 @@ import { Guest } from './entities/guest.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateGuestDto } from './dtos/createGuest.dto';
 import { generateCode } from 'src/uitls/helpers';
+import { GuestOrderDto } from './dtos/guestOrder.dto';
+import { GuestOrders } from './entities/guestOrders.entity';
 @Injectable()
 export class GuestService {
   constructor(
     @InjectRepository(Guest) private guestRepository: Repository<Guest>,
-    private entityManager: EntityManager,
+    private entityManager: EntityManager, @InjectRepository(GuestOrders) private guestOrdersRepository: Repository<GuestOrders>
   ) {}
 
   create(guestData: CreateGuestDto) {
@@ -31,6 +33,15 @@ export class GuestService {
       select * from guests where guestCode = "${code}"
       `
     )
+    return data
+  }
+
+  createOrder(guestOrder : GuestOrderDto[]){
+    const data = this.guestOrdersRepository.createQueryBuilder()
+      .insert()
+      .into(Guest)
+      .values(guestOrder)
+      .execute();
     return data
   }
 }

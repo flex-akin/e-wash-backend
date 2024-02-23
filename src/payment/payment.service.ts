@@ -35,7 +35,6 @@ export class PaymentService {
     }
     const transaction = this.transactionRepository.create(transactionData)
     await this.transactionRepository.save(transaction)
-
     await this.guestRepository.update(userDetails, {transactionRef : reference})
 
     const paystackRes = paystackInstance
