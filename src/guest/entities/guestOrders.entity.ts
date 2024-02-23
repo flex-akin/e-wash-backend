@@ -22,7 +22,9 @@ import { Guest } from './guest.entity';
     created_at: Date;
     @UpdateDateColumn()
     updated_at: Date;
-    @ManyToOne(() => Guest, (guest) => guest.guestOrders )
+    @ManyToOne(() => Guest, (guest) => guest.guestOrders, {
+      onDelete : "CASCADE"
+    } )
     guest : Guest
   }
  

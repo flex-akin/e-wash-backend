@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Headers, HttpCode, HttpStatus, InternalServerErrorException, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Public } from 'src/uitls/custom.decorator';
 
@@ -8,11 +8,18 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
   @Post('webhook')
   @Public()
-  webhook(
+  @HttpCode(200)
+  async webhook(
     @Body() data : any, @Headers() headers : any
   ){
-    this.paymentService.webhook(data, headers['x-paystack-signature'])
-    return headers
+    let res = await this.paymentService.webhook(data, headers['x-paystack-signature'])
+    if (res === true){
+      return HttpStatus.OK
+    }
+    else {
+      throw new InternalServerErrorException();
+    }
+   
   } 
 
   @Post(':id')
@@ -28,6 +35,4 @@ export class PaymentController {
     
     return paystack
   }
-
-
 }

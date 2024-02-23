@@ -20,7 +20,7 @@ export const paystackInstance = axios.create({
 }
 });
 
-export const generatePyastackRef = () => {
+export const generatePaystackRef = () => {
   let alphabet = 'abcdefghijklmnopqrstuvwxyz'
   const date = new Date()
   const timeStamp = date.getTime()

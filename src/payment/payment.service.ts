@@ -1,5 +1,5 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { generatePyastackRef, paystackInstance } from 'src/uitls/helpers';
+import { HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { generatePaystackRef, paystackInstance } from 'src/uitls/helpers';
 import { PaystackUserDto } from 'src/users/types/user.types';
 import { UsersService } from 'src/users/users.service';
 import { Transaction } from './entities/transaction.entity';
@@ -19,7 +19,7 @@ export class PaymentService {
 
   async initializeTransaction(userDetails: PaystackUserDto) {
     const user = await this.usersService.findOneUser(userDetails.id);
-    const reference = generatePyastackRef()
+    const reference = generatePaystackRef()
     const data = {
       email: user.email,
       amount: userDetails.amount,
@@ -61,7 +61,11 @@ async webhook(paystackBody : any, headers : string){
   const secret = this.configService.getOrThrow('PAYSTACK_SECRET_KEY');
   const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(paystackBody)).digest('hex');
   if (hash == headers){
-    this.guestRepository.update({transactionRef : paystackBody.data.reference}, {isPaid : true})
+    await this.guestRepository.update({transactionRef : paystackBody.data.reference}, {isPaid : true})
+    return true
+  }
+  else {
+    return false
   }
 }
 }

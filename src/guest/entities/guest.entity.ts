@@ -36,11 +36,9 @@ export class Guest {
   isCompleted: boolean;
   @CreateDateColumn()
   created_at: Date;
-  @UpdateDateColumn()8
+  @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => GuestOrders, (guestOrders)=> guestOrders.guest, {
-    cascade : true
-}) 
+  @OneToMany(() => GuestOrders, (guestOrders)=> guestOrders.guest) 
   guestOrders: GuestOrders[]
 }

@@ -13,11 +13,22 @@ export class GuestService {
     private entityManager: EntityManager, @InjectRepository(GuestOrders) private guestOrdersRepository: Repository<GuestOrders>
   ) {}
 
-  create(guestData: CreateGuestDto) {
+  async create(guestData: CreateGuestDto) {
     const guestCode = generateCode(guestData.fullName);
     guestData.guestCode = guestCode.toUpperCase();
     let newGuest = this.guestRepository.create(guestData);
-    return this.guestRepository.save(newGuest);
+    let guestGuestOrders : GuestOrders[];
+    for (let i = 0; i <= guestData.guestOrders.length; i++ ){
+      let guest = this.guestOrdersRepository.create(guestData.guestOrders[i])
+      this.guestOrdersRepository.save(guest)
+      guestGuestOrders.push(guest)
+    }
+    newGuest.guestOrders = guestGuestOrders
+    this.guestRepository.save(newGuest);
+    return {
+      status : true,
+      guestCode
+    }
   }
 
   findAll() {
@@ -33,15 +44,6 @@ export class GuestService {
       select * from guests where guestCode = "${code}"
       `
     )
-    return data
-  }
-
-  createOrder(guestOrder : GuestOrderDto[]){
-    const data = this.guestOrdersRepository.createQueryBuilder()
-      .insert()
-      .into(Guest)
-      .values(guestOrder)
-      .execute();
     return data
   }
 }
