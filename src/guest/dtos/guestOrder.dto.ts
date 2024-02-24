@@ -7,5 +7,4 @@ export class GuestOrderDto {
   quantity: number;
   @IsNotEmpty()
   amount: number;
-
 }

@@ -11,7 +11,7 @@ import { GuestService } from './guest.service';
 import { Public } from 'src/uitls/custom.decorator';
 import { CreateGuestDto } from './dtos/createGuest.dto';
 import { GuestResponse } from './types/guest.types';
-import { GuestOrderDto } from './dtos/guestOrder.dto';
+
 
 @Controller('guest')
 export class GuestController {
@@ -23,11 +23,15 @@ export class GuestController {
     @Body() createGuestDto: CreateGuestDto, 
   ): Promise<GuestResponse> {
     try {
+     
       const dataValue = await this.guestService.create(createGuestDto);
   
       return {
         statusCode: HttpStatus.CREATED,
-        data: dataValue.guestCode,
+        data: {
+          guestCode : dataValue.guestCode,
+          id :  dataValue.id
+        }
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

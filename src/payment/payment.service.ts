@@ -8,20 +8,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { Guest } from 'src/guest/entities/guest.entity';
+import { GuestService } from 'src/guest/guest.service';
 
 @Injectable()
 export class PaymentService {
   constructor(
   @InjectRepository(Transaction) private transactionRepository: Repository<Transaction>,
     private usersService: UsersService,
+    private guestService: GuestService,
     private configService : ConfigService,
     @InjectRepository(Guest) private guestRepository: Repository<Guest>,) {}
 
   async initializeTransaction(userDetails: PaystackUserDto) {
-    const user = await this.usersService.findOneUser(userDetails.id);
+    const user = await this.guestService.findById(userDetails.id);
+    
     const reference = generatePaystackRef()
     const data = {
-      email: user.email,
+      email: user[0].email,
       amount: userDetails.amount,
       reference
     };

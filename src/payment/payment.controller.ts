@@ -22,15 +22,14 @@ export class PaymentController {
    
   } 
 
-  @Post(':id')
+  @Post()
   @Public()
   initializeTransaction(
-    @Body() data : {amount : number}, @Param('id', ParseIntPipe) id : number) : any{
+    @Body() data : {amount : number, id : number}) {
       const paystackUserDto = {
         amount : data.amount,
-        id
+        id : data.id,
       }
-
     const paystack = this.paymentService.initializeTransaction(paystackUserDto)
     
     return paystack

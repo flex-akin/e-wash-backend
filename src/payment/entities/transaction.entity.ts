@@ -21,7 +21,7 @@ import {
     status: string;
     @Column({ type: 'text', nullable: true })
     channel: string;
-    @Column()
+    @Column({nullable: true})
     guestCode : string;
     @Column()
     userId: number;

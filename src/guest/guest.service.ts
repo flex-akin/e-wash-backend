@@ -4,7 +4,6 @@ import { Guest } from './entities/guest.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateGuestDto } from './dtos/createGuest.dto';
 import { generateCode } from 'src/uitls/helpers';
-import { GuestOrderDto } from './dtos/guestOrder.dto';
 import { GuestOrders } from './entities/guestOrders.entity';
 @Injectable()
 export class GuestService {
@@ -17,17 +16,19 @@ export class GuestService {
     const guestCode = generateCode(guestData.fullName);
     guestData.guestCode = guestCode.toUpperCase();
     let newGuest = this.guestRepository.create(guestData);
-    let guestGuestOrders : GuestOrders[];
-    for (let i = 0; i <= guestData.guestOrders.length; i++ ){
+    let guestGuestOrders : GuestOrders[] = [];
+    for (let i = 0; i < guestData.guestOrders.length; i++ ){
       let guest = this.guestOrdersRepository.create(guestData.guestOrders[i])
-      this.guestOrdersRepository.save(guest)
+      await this.guestOrdersRepository.save(guest)
       guestGuestOrders.push(guest)
     }
+
     newGuest.guestOrders = guestGuestOrders
-    this.guestRepository.save(newGuest);
+    const {id} = await this.guestRepository.save(newGuest);
     return {
       status : true,
-      guestCode
+      guestCode,
+      id      
     }
   }
 
@@ -42,6 +43,15 @@ export class GuestService {
     const data = this.entityManager.query(
       `
       select * from guests where guestCode = "${code}"
+      `
+    )
+    return data
+  }
+
+  findById(id : number) : Promise<Guest>{
+    const data = this.entityManager.query(
+      `
+      select * from guests where id = ${id}
       `
     )
     return data
