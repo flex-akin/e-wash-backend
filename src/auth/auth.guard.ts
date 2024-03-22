@@ -21,8 +21,8 @@ export class AuthGuard implements CanActivate {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
     ]);
-
     if (isPublic) return true;
+  
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException();
@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate {
       request['user'] = payload;
       return true;
     } catch (error) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(error.message);
     }
   }
 

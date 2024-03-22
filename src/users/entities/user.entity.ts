@@ -2,10 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserOrders } from './userOrders.entity';
+import { Role } from 'src/auth/dtos/role.enum';
+import { Plan } from './plan.entity';
 
 @Entity({ name: 'users' })
 @Unique('UQ_EMAIL', ['email'])
@@ -29,8 +34,30 @@ export class User {
   address: string;
   @Column()
   password: string;
+  @Column({ type: 'boolean', default: false })
+  isDelivered: boolean;
+  @Column({ type: 'boolean', default: false })
+  isSubscribed : boolean;
+  @Column({ type: 'boolean', default: false })
+  isCompleted: boolean;
+  @CreateDateColumn()
+  @Column()
+  remnant : number
+  @Column({
+    type: "enum",
+    enum: Role,
+    default: Role.User,
+})
+  role: string;
   @CreateDateColumn()
   created_at: Date;
   @UpdateDateColumn()
   updated_at: Date;
+
+
+  @OneToMany(() => UserOrders, (userOrders)=> userOrders.user) 
+  userOrders: UserOrders[]
+
+  @ManyToOne(() => Plan, (plan)=> plan.users) 
+  plan: Plan
 }

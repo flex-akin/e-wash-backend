@@ -8,9 +8,11 @@ import { Transaction } from './entities/transaction.entity';
 import { Guest } from 'src/guest/entities/guest.entity';
 import { GuestService } from 'src/guest/guest.service';
 import { GuestOrders } from 'src/guest/entities/guestOrders.entity';
+import { Plan } from 'src/users/entities/plan.entity';
+import { UserOrders } from 'src/users/entities/userOrders.entity';
 
 @Module({
-  imports : [TypeOrmModule.forFeature([User, Transaction, Guest, GuestOrders])],
+  imports : [TypeOrmModule.forFeature([User, UserOrders, Transaction, Guest, GuestOrders, Plan])],
   controllers: [PaymentController],
   providers: [PaymentService, UsersService, GuestService],
 })

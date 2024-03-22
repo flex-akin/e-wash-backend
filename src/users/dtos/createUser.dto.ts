@@ -1,6 +1,7 @@
 import { IsEmail, IsNotEmpty, IsPhoneNumber } from 'class-validator';
 
 export class CreateUserDto {
+  id : number;
   @IsNotEmpty()
   profile_picture: string;
   @IsNotEmpty()
@@ -17,4 +18,5 @@ export class CreateUserDto {
   address: string;
   @IsNotEmpty()
   password: string;
+  role : string;
 }

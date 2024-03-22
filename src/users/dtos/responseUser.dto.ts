@@ -1,6 +1,7 @@
 import { CreateUserBody } from '../types/user.types';
 
 export class UserResponseDto {
+  id: number;
   profile_picture: string;
   username: string;
   first_name: string;
@@ -8,6 +9,8 @@ export class UserResponseDto {
   email: string;
   phone_number: string;
   address: string;
+  role : string;
+
 
   constructor(userData: CreateUserBody) {
     this.profile_picture = userData.profile_picture;
@@ -17,5 +20,7 @@ export class UserResponseDto {
     this.first_name = userData.first_name;
     this.last_name = userData.last_name;
     this.username = userData.username;
+    this.role = userData.role
+    this.id = userData.id
   }
 }

@@ -10,12 +10,15 @@ export type CreateUserBody = {
   phone_number: string;
   address: string;
   password: string;
+  role : string;
+  id : number
 };
 
 export type UserResponse = {
   statusCode: number;
   data?: UserResponseDto | User[];
   error?: string;
+  message?: string
 };
 
 export type PaystackUserDto = {

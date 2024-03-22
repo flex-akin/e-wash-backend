@@ -4,6 +4,7 @@ import { LoginDto } from './dtos/login.dto';
 import { authResponse } from './types/authResponse.type';
 import { JwtService } from '@nestjs/jwt';
 import { UserResponseDto } from 'src/users/dtos/responseUser.dto';
+import { Public } from 'src/uitls/custom.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +13,7 @@ export class AuthController {
     private jwtService: JwtService,
   ) {}
 
+  @Public()
   @Post('login')
   async signIn(@Body() loginDto: LoginDto): Promise<authResponse> {
     const user = await this.authService.signIn(
@@ -19,6 +21,7 @@ export class AuthController {
       loginDto.password,
     );
     const payload: UserResponseDto = {
+      id : user.id,
       username: user.username,
       email: user.email,
       address: user.address,
@@ -26,6 +29,7 @@ export class AuthController {
       profile_picture: user.profile_picture,
       last_name: user.last_name,
       phone_number: user.phone_number,
+      role : user.role
     };
     const access_token = await this.jwtService.signAsync(payload);
     return {
