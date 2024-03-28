@@ -3,7 +3,6 @@ import { Reflector } from '@nestjs/core';
 import { Role } from '../dtos/role.enum';
 import { ROLES_KEY } from 'src/uitls/custom.decorator';
 import { Request } from 'express';
-import { jwtDecode } from "jwt-decode";
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
@@ -26,7 +25,6 @@ export class RoleGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.getOrThrow('JWT_SECRET'),
       });
-      
       return requiredRoles.some((role) => payload.role?.includes(role));
     } catch (error) {
       throw new UnauthorizedException(error.message);

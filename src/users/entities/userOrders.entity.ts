@@ -2,6 +2,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -22,9 +23,18 @@ import { User } from './user.entity';
     created_at: Date;
     @UpdateDateColumn()
     updated_at: Date;
+    @Column({ type: 'boolean', default: false })
+    isDelivered: boolean;
+    @Column({ type: 'boolean', default: false })
+    isCompleted: boolean;
+    @Column({nullable: true})
+    pickUpDate : Date;
+    @Column()
+    orderCode : string;
     @ManyToOne(() => User, (user) => user.userOrders, {
       onDelete : "CASCADE"
     } )
+    @JoinColumn({ name: 'user_id' })
     user : User
   }
  

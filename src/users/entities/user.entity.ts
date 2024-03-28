@@ -35,13 +35,9 @@ export class User {
   @Column()
   password: string;
   @Column({ type: 'boolean', default: false })
-  isDelivered: boolean;
-  @Column({ type: 'boolean', default: false })
   isSubscribed : boolean;
-  @Column({ type: 'boolean', default: false })
-  isCompleted: boolean;
   @CreateDateColumn()
-  @Column()
+  @Column({default: 0})
   remnant : number
   @Column({
     type: "enum",
@@ -53,7 +49,6 @@ export class User {
   created_at: Date;
   @UpdateDateColumn()
   updated_at: Date;
-
 
   @OneToMany(() => UserOrders, (userOrders)=> userOrders.user) 
   userOrders: UserOrders[]

@@ -15,6 +15,7 @@ import { User } from 'src/users/entities/user.entity';
         password: configService.getOrThrow('MYSQL_PASSWORD'),
         autoLoadEntities: true,
         synchronize: configService.getOrThrow('MYSQL_SYNCHRONIZE'),
+        logging: true,
         entities: [User],
       }),
       inject: [ConfigService],

@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -21,9 +22,23 @@ import { GuestOrderDto } from 'src/guest/dtos/guestOrder.dto';
 import { HttpStatusCode } from 'axios';
 import { UserOrderDto } from './dtos/userOrder.dto';
 
+
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @Roles(Role.User)
+  @Get("/order")
+  async getOrders(
+    @Request() request,
+  ){
+    const value = await this.usersService.getAllOrders(request.user.id)
+    return {
+      statusCode : HttpStatus.OK,
+      data: value,
+      message : "Data fetched successfully"
+    }
+  }
 
   @Roles(Role.User)
   @Put('/selectPlan/:plan')
@@ -39,6 +54,18 @@ export class UsersController {
     }
   }
 
+  @Roles(Role.User)
+  @Get("/checkUserOrder")
+  async checkUserOrderStatus(
+    @Query() queryParams: {orderCode : string},
+  ){
+    const value = await this.usersService.checkUserOrderStatus(queryParams.orderCode)
+    return {
+      statusCode : HttpStatus.OK,
+      data: value, 
+      message : "successful"
+    }
+  }
 
   @Get()
   async findAllUsers(): Promise<UserResponse> {
@@ -50,9 +77,21 @@ export class UsersController {
     };
   }
 
+  @Roles(Role.User)
+  @Get('/getOrderByCOde')
+  async getOrderByCOde(
+    @Request() request
+  ){
+    const value = await this.usersService.getAllOrdersByCode(request.user.id)
+    return {
+      statusCode : HttpStatus.OK,
+      data: value, 
+      message : "order fetched successfully"
+    }
+  }
 
   @Public()
-  @Get(':id')
+  @Get('/:id')
   async findOneUser(
     @Request() request,
     @Param('id', ParseIntPipe) id: number,
@@ -81,7 +120,7 @@ export class UsersController {
     } catch (error) {
       if (error.message.includes('UQ_USERNAME'))
         throw new HttpException(
-          'Username is already taken',
+          'email is already taken',
           HttpStatus.BAD_REQUEST,
         );
       else if (error.message.includes('UQ_EMAIL'))
@@ -89,7 +128,7 @@ export class UsersController {
           'You already have an account with us',
           HttpStatus.BAD_REQUEST,
         );
-      else throw new InternalServerErrorException();
+      else throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -106,5 +145,19 @@ export class UsersController {
       message : "Your order has been completed successfully"
     }
   }
+
+  @Roles(Role.User)
+  @Post("/schedule")
+  async schedule(
+    @Query() queryParams: {date : string, orderCode : string},
+  ){
+    const value = await this.usersService.scheduleDate(queryParams.date, queryParams.orderCode)
+    return {
+      statusCode : HttpStatus.OK,
+      data: value, 
+      message : "date scheduled"
+    }
+  }
+
 
 }
