@@ -26,3 +26,13 @@ export type PaystackUserDto = {
   id : number;
   amount : number;
 }
+
+export type TChangePWDto = {
+  newPassword : string
+  oldPassword : string
+}
+
+export type TFeedbackDto = {
+  subject :string;
+  message : string
+}

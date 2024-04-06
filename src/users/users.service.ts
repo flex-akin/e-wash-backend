@@ -1,22 +1,26 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserBody } from './types/user.types';
+import { CreateUserBody, TFeedbackDto } from './types/user.types';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { GuestOrderDto } from 'src/guest/dtos/guestOrder.dto';
 import { Plan } from './entities/plan.entity';
 import { UserOrders } from './entities/userOrders.entity';
-import { generateCode } from 'src/uitls/helpers';
+import { generateCode, generateRandomString } from 'src/uitls/helpers';
+import { EmailService } from 'src/email/email.service';
+import { Feedback } from './entities/feedback.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Feedback) private feedbackRepository: Repository<Feedback>,
     @InjectRepository(Plan) private planRepository : Repository<Plan>,
     @InjectRepository(UserOrders) private userOrdersRepository : Repository<UserOrders>,
     private configService: ConfigService,  private entityManager: EntityManager,
+    private emailService : EmailService
   ) {}
 
   findUsers() {
@@ -43,9 +47,6 @@ export class UsersService {
 
   async createUser(userDetails: CreateUserBody) {
     let rawPassword = userDetails.password;
-    let hashString = this.configService.getOrThrow('HASH');
-    hashString = parseInt(hashString)
-    const saltText = this.configService.getOrThrow('SALT_TEXT')
     const salt = await bcrypt.genSalt()
     const password = await bcrypt.hash(rawPassword, salt);
     userDetails = { ...userDetails, password };
@@ -144,4 +145,51 @@ export class UsersService {
     })
     return orderStatus
   }
+
+  async forgotPassword(email : string){
+    const user = this.userRepository.findOne({
+      where : {
+        email
+      }
+    })
+    if(!user){
+      throw new HttpException(
+        "user does not exist",
+        HttpStatus.BAD_REQUEST,
+      )
+    }
+    const rawPassword = generateRandomString()
+    const salt = await bcrypt.genSalt()
+    const password = await bcrypt.hash(rawPassword, salt);
+    this.userRepository.update({email}, {password})
+    this.emailService.forgotPassword(rawPassword, email);
+    return true
+  }
+
+  async changePassword(id : number, newPassword : string, oldPassword : string){
+    const user = await this.userRepository.findOne({
+      where : {
+        id
+      }
+    })
+    if (!user) throw new NotFoundException('User not found');
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) throw new UnauthorizedException('Incorrect Password');
+    const salt = await bcrypt.genSalt()
+    const password = await bcrypt.hash(newPassword, salt);
+    this.userRepository.update({id},{password})
+    return true;
+  }
+
+  async createFeedback(feedbackDto : TFeedbackDto){
+    const feedback = this.feedbackRepository.create(feedbackDto)
+    this.feedbackRepository.save(feedback)
+    return true;
+  }
+
+  async getFeedback(){
+    const feedbacks = await this.feedbackRepository.find()
+    return feedbacks
+  }
+  
 }

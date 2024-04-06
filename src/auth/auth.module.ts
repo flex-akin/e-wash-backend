@@ -11,10 +11,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './role/role.guard';
 import { Plan } from 'src/users/entities/plan.entity';
 import { UserOrders } from 'src/users/entities/userOrders.entity';
+import { EmailService } from 'src/email/email.service';
+import { Feedback } from 'src/users/entities/feedback.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Plan, UserOrders]),
+    TypeOrmModule.forFeature([User, Plan, UserOrders, Feedback]),
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         global: true,
@@ -28,6 +30,7 @@ import { UserOrders } from 'src/users/entities/userOrders.entity';
   providers: [
     AuthService,
     UsersService,
+    EmailService,
     {
       provide: APP_GUARD,
       useClass: RoleGuard,

@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/createUser.dto';
-import { UserResponse } from './types/user.types';
+import { TChangePWDto, TFeedbackDto, UserResponse } from './types/user.types';
 import { UserResponseDto } from './dtos/responseUser.dto';
 import { Public, Roles } from 'src/uitls/custom.decorator';
 import { Role } from 'src/auth/dtos/role.enum';
@@ -25,45 +25,56 @@ import { UserOrderDto } from './dtos/userOrder.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   @Roles(Role.User)
   @Get("/order")
   async getOrders(
     @Request() request,
-  ){
+  ) {
     const value = await this.usersService.getAllOrders(request.user.id)
     return {
-      statusCode : HttpStatus.OK,
+      statusCode: HttpStatus.OK,
       data: value,
-      message : "Data fetched successfully"
+      message: "Data fetched successfully"
     }
   }
-
   @Roles(Role.User)
   @Put('/selectPlan/:plan')
   async selectPlan(
-    @Param('plan') plan : string,
+    @Param('plan') plan: string,
     @Request() request,
-  ){
-    this.usersService.selectPlan(plan, request.user.id)  
+  ) {
+    this.usersService.selectPlan(plan, request.user.id)
     return {
-      statusCode : HttpStatus.OK,
-      data : true,
-      message : "you have selected your plan"
+      statusCode: HttpStatus.OK,
+      data: true,
+      message: "you have selected your plan"
     }
   }
 
   @Roles(Role.User)
   @Get("/checkUserOrder")
   async checkUserOrderStatus(
-    @Query() queryParams: {orderCode : string},
-  ){
+    @Query() queryParams: { orderCode: string },
+  ) {
     const value = await this.usersService.checkUserOrderStatus(queryParams.orderCode)
     return {
-      statusCode : HttpStatus.OK,
-      data: value, 
-      message : "successful"
+      statusCode: HttpStatus.OK,
+      data: value,
+      message: "successful"
+    }
+  }
+
+  @Roles(Role.Admin)
+  @Get("/feedback")
+  async getFeedback(
+  ){
+    const feedbacks = await this.usersService.getFeedback()
+    return {
+      statusCode: HttpStatus.OK,
+      data: feedbacks,
+      message: "your feedback have been sent successfully"
     }
   }
 
@@ -72,7 +83,7 @@ export class UsersController {
     const user = await this.usersService.findUsers();
     return {
       statusCode: HttpStatus.OK,
-      message : "user fetched",
+      message: "user fetched",
       data: user,
     };
   }
@@ -81,12 +92,12 @@ export class UsersController {
   @Get('/getOrderByCOde')
   async getOrderByCOde(
     @Request() request
-  ){
+  ) {
     const value = await this.usersService.getAllOrdersByCode(request.user.id)
     return {
-      statusCode : HttpStatus.OK,
-      data: value, 
-      message : "order fetched successfully"
+      statusCode: HttpStatus.OK,
+      data: value,
+      message: "order fetched successfully"
     }
   }
 
@@ -136,26 +147,66 @@ export class UsersController {
   @Post("/createOrder")
   async createUserOrder(
     @Request() request,
-    @Body() userOder : UserOrderDto
-  ){
+    @Body() userOder: UserOrderDto
+  ) {
     const value = await this.usersService.createUserOrder(userOder.userOrder, request.user.id)
     return {
-      statusCode : HttpStatus.CREATED,
-      data: value, 
-      message : "Your order has been completed successfully"
+      statusCode: HttpStatus.CREATED,
+      data: value,
+      message: "Your order has been completed successfully"
     }
   }
 
   @Roles(Role.User)
   @Post("/schedule")
   async schedule(
-    @Query() queryParams: {date : string, orderCode : string},
-  ){
+    @Query() queryParams: { date: string, orderCode: string },
+  ) {
     const value = await this.usersService.scheduleDate(queryParams.date, queryParams.orderCode)
     return {
-      statusCode : HttpStatus.OK,
-      data: value, 
-      message : "date scheduled"
+      statusCode: HttpStatus.OK,
+      data: value,
+      message: "date scheduled"
+    }
+  }
+
+  @Public()
+  @Post("/forgotPassword")
+  async forgotPassword(
+    @Query() queryParams: { email: string }
+  ) {
+    const value = await this.usersService.forgotPassword(queryParams.email);
+    return {
+      statusCode: HttpStatus.OK,
+      data: value,
+      message: "password reset email sent"
+    }
+  }
+
+  @Roles(Role.User)
+  @Post("/changePassword")
+  async changePassword(
+    @Request() request,
+    @Body() changePasswordDto: TChangePWDto
+  ) {
+    this.usersService.changePassword(request.user.id, changePasswordDto.newPassword, changePasswordDto.oldPassword)
+    return {
+      statusCode: HttpStatus.OK,
+      data: null,
+      message: "password changed successfully"
+    }
+  }
+
+  @Roles(Role.User)
+  @Post("/feedback")
+  async createFeedback(
+    @Body() feedbackDto: TFeedbackDto
+  ) {
+    this.usersService.createFeedback(feedbackDto)
+    return {
+      statusCode: HttpStatus.OK,
+      data: null,
+      message: "your feedback have been sent successfully"
     }
   }
 

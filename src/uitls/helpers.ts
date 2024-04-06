@@ -39,3 +39,13 @@ const shuffleString = (inputString: string) =>{
   
   return characters.join('');
 }
+
+export const generateRandomString =(): string => {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < 10; i++) {
+    const randomIndex = Math.floor(Math.random() * letters.length);
+    result += letters.charAt(randomIndex);
+  }
+  return result;
+} 
