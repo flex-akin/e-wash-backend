@@ -5,10 +5,12 @@ import { EntityManager, Repository } from 'typeorm';
 import { CreateGuestDto } from './dtos/createGuest.dto';
 import { generateCode } from 'src/uitls/helpers';
 import { GuestOrders } from './entities/guestOrders.entity';
+import { EmailService } from 'src/email/email.service';
 @Injectable()
 export class GuestService {
   constructor(
     @InjectRepository(Guest) private guestRepository: Repository<Guest>,
+    private emailService : EmailService,
     private entityManager: EntityManager, @InjectRepository(GuestOrders) private guestOrdersRepository: Repository<GuestOrders>
   ) {}
 
@@ -25,10 +27,11 @@ export class GuestService {
 
     newGuest.guestOrders = guestGuestOrders
     const {id} = await this.guestRepository.save(newGuest);
+    this.emailService.sendCode(guestCode, guestData.email, guestData.fullName )
     return {
       status : true,
       guestCode,
-      id      
+      id
     }
   }
 

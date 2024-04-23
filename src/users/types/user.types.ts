@@ -36,3 +36,19 @@ export type TFeedbackDto = {
   subject :string;
   message : string
 }
+
+export type TSingleOrder = {
+  clotheType : string
+  quantity : number
+  amount : number
+}
+
+export type TUserOrderDetails = {
+  code : string
+  isCompleted : boolean
+  isDelivered : boolean
+  date : string
+  email : string
+  address : string
+  phoneNumber : string
+}

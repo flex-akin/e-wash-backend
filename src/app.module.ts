@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { PaymentModule } from './payment/payment.module';
 import { GuestModule } from './guest/guest.module';
 import { EmailModule } from './email/email.module';
+import { AdminsModule } from './admins/admins.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { EmailModule } from './email/email.module';
     PaymentModule,
     GuestModule,
     EmailModule,
+    AdminsModule,
   ],
   controllers: [],
   providers: [],
