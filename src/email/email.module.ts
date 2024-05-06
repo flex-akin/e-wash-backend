@@ -15,7 +15,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
           port : configService.getOrThrow('MAIL_PORT'),
           secure : false,
           auth : {
-            user : configService.getOrThrow('MAUI_AUTH_USER'),
+            user : configService.getOrThrow('MAIL_AUTH_USER'),
             pass : configService.getOrThrow('MAIL_AUTH_PASSWORD')
           }
         },

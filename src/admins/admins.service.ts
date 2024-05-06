@@ -10,15 +10,15 @@ import { EntityManager, Repository } from 'typeorm';
 export class AdminsService {
     constructor(
         private entityManager: EntityManager,
-        @InjectRepository(UserOrders) private userOrdersRepository : Repository<UserOrders>,
-        @InjectRepository(Guest) private guestRepository : Repository<Guest>,
+        @InjectRepository(UserOrders) private userOrdersRepository: Repository<UserOrders>,
+        @InjectRepository(Guest) private guestRepository: Repository<Guest>,
     ) { }
     async findAllOrders() {
         const value = await this.entityManager.query(`   
             select distinct orderCode as code, isCompleted, 'user' as type, created_at from user_orders
         union all
             select guestCode as code, isCompleted, 'guest' as type, created_at from guests
-        order by created_at;
+            where isPaid = true order by created_at;
         `)
         return value;
     }
@@ -27,7 +27,6 @@ export class AdminsService {
         let value: TSingleOrder
         let userOrderDetails: TUserOrderDetails
         if (type === "guest") {
-           
             value = await this.entityManager.query(`
             select a.clotheType, a.quantity, a.amount 
             from guest_orders a, guests b 
@@ -54,26 +53,50 @@ export class AdminsService {
     `)
         }
         return {
-            userOrderDetails :userOrderDetails[0] ,
-            orderContent : value
+            userOrderDetails: userOrderDetails[0],
+            orderContent: value
         }
     }
 
-    async completed(code: string, type: string){
+    async completed(code: string, type: string) {
 
-        if (type === "guest"){
+        if (type === "guest") {
             let data = await this.guestRepository.findOneBy({
-                guestCode : code
+                guestCode: code
             })
-            this.guestRepository.update({guestCode : code }, {isCompleted : !data.isCompleted})
+            this.guestRepository.update({ guestCode: code }, { isCompleted: !data.isCompleted })
         }
-        else if (type === "user"){
+        else if (type === "user") {
             let data = await this.userOrdersRepository.findOneBy({
-                orderCode : code
+                orderCode: code
             })
-            this.userOrdersRepository.update({orderCode : code}, {isCompleted : !data.isCompleted})
+            this.userOrdersRepository.update({ orderCode: code }, { isCompleted: !data.isCompleted })
         }
         return true
     }
-   
+
+    async getPayments(role: string, id : number) {
+        let payments : any;
+        if (role == "ADMIN" ){
+            payments = await this.entityManager.query(
+                `
+                select a.transactionDate as date, b.fullName as name, a.amount from transactions a, guests b
+                where a.userId = b.id and a.module = 'GUEST'
+                union all
+                select a.transactionDate as date, concat(b.first_name, ' ', b.last_name) as name, a.amount from transactions a, users b
+                where a.userId = b.id and a.module = 'USER';
+                `
+            )
+        }
+       
+        else{
+            payments = await this.entityManager.query(
+                `
+                select a.transactionDate as date, concat(b.first_name, ' ', b.last_name) as name, a.amount from transactions a, users b
+                where a.userId = b.id and a.userId = ${id} and a.module = 'USER';
+                `
+            )
+        }
+        return payments;
+    }
 }

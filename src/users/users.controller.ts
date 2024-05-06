@@ -40,6 +40,30 @@ export class UsersController {
     }
   }
   @Roles(Role.User)
+  @Get("/plan")
+  async getPlan(
+    @Request() request,
+  ) {
+    const value = await this.usersService.getPlan(request.user.id)
+    if (!value.isSubscribed){
+      return {
+        statusCode: HttpStatus.OK,
+        data: {
+          isSubscribed : false,
+          remnant : "N/A",
+          type : "N/A"
+        },
+        message: "Data fetched successfully"
+      }
+    }
+    return {
+      statusCode: HttpStatus.OK,
+      data: value,
+      message: "Data fetched successfully"
+    }
+  }
+
+  @Roles(Role.User)
   @Put('/selectPlan/:plan')
   async selectPlan(
     @Param('plan') plan: string,
@@ -65,6 +89,7 @@ export class UsersController {
       message: "successful"
     }
   }
+
 
   @Roles(Role.Admin)
   @Get("/feedback")

@@ -12,6 +12,7 @@ export class UserResponseDto {
   role : string;
 
 
+
   constructor(userData: CreateUserBody) {
     this.profile_picture = userData.profile_picture;
     this.address = userData.address;
@@ -22,5 +23,6 @@ export class UserResponseDto {
     this.username = userData.username;
     this.role = userData.role
     this.id = userData.id
+  
   }
 }

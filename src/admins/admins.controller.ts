@@ -1,13 +1,13 @@
-import { Controller, Get, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Request } from '@nestjs/common';
 import { AdminsService } from './admins.service';
-import { Roles } from 'src/uitls/custom.decorator';
+import { Public, Roles } from 'src/uitls/custom.decorator';
 import { Role } from 'src/auth/dtos/role.enum';
 
-@Roles(Role.Admin)
+
 @Controller('admins')
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) { }
-
+  @Roles(Role.Admin)
   @Get("/orders")
   async getOrders() {
     const data = await this.adminsService.findAllOrders();
@@ -18,6 +18,7 @@ export class AdminsController {
     }
   }
 
+  @Roles(Role.Admin)
   @Get("/orders/:code/:type")
   async getOrdersByCode(
     @Param('code') code: string,
@@ -34,6 +35,7 @@ export class AdminsController {
     }
   }
 
+  @Roles(Role.Admin)
   @Get("/orders/completed/:code/:type")
   async completed(
     @Param('code') code: string,
@@ -45,5 +47,17 @@ export class AdminsController {
     data : true,
     message: "order has be set to completed"
   }
+  }
+  
+  @Get("/payments")
+  async getPayments(
+    @Request() request
+  ){
+    const payments = await this.adminsService.getPayments(request.user.role, request.user.id)
+    return {
+      statusCode: HttpStatus.OK,
+      data : payments,
+      message : "data fetched successfully"
+    }
   }
 }

@@ -3,7 +3,7 @@ import { generatePaystackRef, paystackInstance } from 'src/uitls/helpers';
 import { PaystackUserDto } from 'src/users/types/user.types';
 import { UsersService } from 'src/users/users.service';
 import { Transaction } from './entities/transaction.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
@@ -16,33 +16,34 @@ import { User } from 'src/users/entities/user.entity';
 @Injectable()
 export class PaymentService {
   constructor(
-  @InjectRepository(Transaction) private transactionRepository: Repository<Transaction>,
+    @InjectRepository(Transaction) private transactionRepository: Repository<Transaction>,
     private usersService: UsersService,
     private guestService: GuestService,
-    private configService : ConfigService,
+    private configService: ConfigService,
+    private entityManager: EntityManager,
     @InjectRepository(Guest) private guestRepository: Repository<Guest>,
-    @InjectRepository(User) private userRepository: Repository<User>) {}
+    @InjectRepository(User) private userRepository: Repository<User>) { }
 
   async initializeTransaction(userDetails: PaystackUserDto) {
     const user = await this.guestService.findById(userDetails.id);
-    
+
     const reference = generatePaystackRef()
     const data = {
       email: user[0].email,
-      amount: userDetails.amount,
+      amount: userDetails.amount * 100,
       reference
     };
     let transactionData = {
-      transactionRef : reference,
-      transactionDate : new Date(),
-      module : "GUEST",
-      status : "INITIALIZED",
-      userId : userDetails.id,
-      amount : userDetails.amount
+      transactionRef: reference,
+      transactionDate: new Date(),
+      module: "GUEST",
+      status: "INITIALIZED",
+      userId: userDetails.id,
+      amount: userDetails.amount
     }
     const transaction = this.transactionRepository.create(transactionData)
     await this.transactionRepository.save(transaction)
-    await this.guestRepository.update(userDetails, {transactionRef : reference})
+    await this.guestRepository.update(userDetails, { transactionRef: reference })
 
     const paystackRes = paystackInstance
       .post('/transaction/initialize', data)
@@ -64,36 +65,52 @@ export class PaymentService {
   }
 
 
-async webhook(paystackBody : any, headers : string){
-  const secret = this.configService.getOrThrow('PAYSTACK_SECRET_KEY');
-  const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(paystackBody)).digest('hex');
-  if (hash == headers){
-    await this.guestRepository.update({transactionRef : paystackBody.data.reference}, {isPaid : true})
-    return true
+  async webhook(paystackBody: any, headers: string) {
+    const secret = this.configService.getOrThrow('PAYSTACK_SECRET_KEY');
+    const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(paystackBody)).digest('hex');
+    if (hash === headers) {
+      this.transactionRepository.update({ transactionRef: paystackBody.data.reference },
+        {
+          transactionDate: paystackBody.data.paid_at,
+          status: "SUCCESS",
+          channel: paystackBody.data.channel,
+          amount: paystackBody.data.amount
+        }
+      )
+      const { userId, module } = await this.transactionRepository.findOneBy({
+        transactionRef: paystackBody.data.reference
+      })
+      if (module === "GUEST") {
+        await this.guestRepository.update({ transactionRef: paystackBody.data.reference }, { isPaid: true })
+      }
+      else if (module === "USER") {
+        this.userRepository.update({ id: userId }, { isSubscribed: true })
+      }
+      return true
+    }
+    else {
+      return false
+    }
   }
-  else {
-    return false
-  }
-}
 
 
-async subscribe(userDetails: PaystackUserDto){
-  const user = await this.userRepository.findBy({
-    id : userDetails.id
-  });
-  const reference = generatePaystackRef()
+  async subscribe(userDetails: PaystackUserDto) {
+    const user = await this.userRepository.findBy({
+      id: userDetails.id
+    });
+    const reference = generatePaystackRef()
     const data = {
       email: user[0].email,
-      amount: userDetails.amount,
+      amount: userDetails.amount * 100,
       reference
     };
     let transactionData = {
-      transactionRef : reference,
-      transactionDate : new Date(),
-      module : "GUEST",
-      status : "INITIALIZED",
-      userId : userDetails.id,
-      amount : userDetails.amount
+      transactionRef: reference,
+      transactionDate: new Date(),
+      module: "USER",
+      status: "INITIALIZED",
+      userId: userDetails.id,
+      amount: userDetails.amount
     }
     const transaction = this.transactionRepository.create(transactionData)
     await this.transactionRepository.save(transaction)
@@ -115,7 +132,10 @@ async subscribe(userDetails: PaystackUserDto){
       });
     return paystackRes;
 
-}
+  }
+
+  
+
 }
 
 

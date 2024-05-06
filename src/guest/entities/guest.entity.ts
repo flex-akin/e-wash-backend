@@ -15,6 +15,8 @@ export class Guest {
   @Column()
   email: string;
   @Column()
+  fullName : string;
+  @Column()
   phoneNumber: string;
   @Column({nullable: true})
   transactionRef: string;

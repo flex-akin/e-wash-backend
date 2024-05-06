@@ -94,8 +94,12 @@ export class UsersService {
       const planValue = await this.planRepository.findOneBy({
         type : plan.toLocaleUpperCase()
       })
-      const remnant = plan == "basic" ? 35 : 45
-      await this.userRepository.update({id : userId}, {plan : planValue, remnant })
+      const remnantAdd = plan == "basic" ? 35 : 45
+      const {remnant} = await this.userRepository.findOneBy({
+        id : userId
+      })
+
+      await this.userRepository.update({id : userId}, {plan : planValue, remnant : remnant + remnantAdd})
       return true
     } catch (error) {
       throw new InternalServerErrorException()
@@ -191,5 +195,16 @@ export class UsersService {
     const feedbacks = await this.feedbackRepository.find()
     return feedbacks
   }
+
+  async getPlan(id: number){
+    const [plan] = await this.entityManager.query(
+      `
+      select a.remnant, b.type, a.isSubscribed from users a, plan b where
+      a.id = ${id} and a.planId = b.id
+      `
+    )
+    return plan
+  }
+
   
 }

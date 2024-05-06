@@ -29,7 +29,7 @@ export class AuthController {
       profile_picture: user.profile_picture,
       last_name: user.last_name,
       phone_number: user.phone_number,
-      role : user.role
+      role : user.role,
     };
     const access_token = await this.jwtService.signAsync(payload);
     return {
